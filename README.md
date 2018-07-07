@@ -1,2 +1,2 @@
 # Go-Blockchain
-Simple blockchaim implementation in go
+Simple blockchain implementation in go
