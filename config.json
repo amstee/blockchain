@@ -1,0 +1,4 @@
+{
+  "DatabaseType": "sqlite3",
+  "DatabaseFile": "blockchain.db"
+}
