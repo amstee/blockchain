@@ -6,10 +6,11 @@ import (
 )
 
 func Run(db *gorm.DB) error {
-	blockchain := classes.NewBlockChain()
+	blockchain := classes.GetBlockChainFromGenesis(db)
+	//blockchain := classes.NewBlockChain(db)
 
-	blockchain.AddBlock("Send 1 BTC to Ragnar")
-	blockchain.AddBlock("Send 2 BTC to Ivar")
+	//blockchain.AddBlock("Send 1 BTC to Ragnar", db)
+	//blockchain.AddBlock("Send 2 BTC to Ivar", db)
 
 	blockchain.DisplayBlockChain()
 	return nil

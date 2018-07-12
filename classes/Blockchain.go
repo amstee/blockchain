@@ -5,24 +5,46 @@ import (
 	"strconv"
 	"github.com/amstee/blockchain/models"
 	"time"
+	"github.com/jinzhu/gorm"
 )
 
 type Blockchain struct {
 	blocks []*models.BlockModel
 }
 
-func (b *Blockchain) AddBlock(data string) {
+func (b *Blockchain) AddBlock(data string, db *gorm.DB) {
 	prevBlock := b.blocks[len(b.blocks) - 1]
 	newBlock := NewBlock(data, prevBlock)
 	b.blocks = append(b.blocks, newBlock)
+	if db.NewRecord(newBlock) {
+		db.Create(newBlock)
+	}
 }
 
-func NewGenesisBlock() *models.BlockModel {
-	return NewBlock("Genesis Block", nil)
+func NewGenesisBlock(db *gorm.DB) *models.BlockModel {
+	var block models.BlockModel
+
+	if err := db.Last(&block).Error; err != nil {
+		block := NewBlock("Genesis Block", nil)
+		if db.NewRecord(block) {
+			db.Create(block)
+		}
+		return block
+	}
+	return &block
 }
 
-func NewBlockChain() *Blockchain {
-	return &Blockchain{[]*models.BlockModel{NewGenesisBlock()}}
+func GetBlockChainFromGenesis(db *gorm.DB) *Blockchain {
+	var blocks []*models.BlockModel
+
+	if err := db.Find(&blocks).Error; err != nil {
+		return NewBlockChain(db)
+	}
+	return &Blockchain{blocks}
+}
+
+func NewBlockChain(db *gorm.DB) *Blockchain {
+	return &Blockchain{[]*models.BlockModel{NewGenesisBlock(db)}}
 }
 
 func (b *Blockchain) DisplayBlockChain() {
