@@ -2,9 +2,10 @@ package logic
 
 import (
 	"github.com/amstee/blockchain/classes"
+	"github.com/jinzhu/gorm"
 )
 
-func Run() error {
+func Run(db *gorm.DB) error {
 	blockchain := classes.NewBlockChain()
 
 	blockchain.AddBlock("Send 1 BTC to Ragnar")

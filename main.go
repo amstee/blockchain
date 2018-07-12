@@ -3,6 +3,8 @@ package main
 import (
 	"github.com/amstee/blockchain/config"
 	"log"
+	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	"github.com/amstee/blockchain/logic"
 )
 
@@ -11,9 +13,11 @@ func main() {
 	err := config.InitConfig(dbConf); if err != nil {
 		log.Fatalf(err.Error())
 	}
-	log.Printf("Database connection uri is %s", dbConf.Uri)
-	log.Printf("Database connection port is %d", dbConf.Port)
-	log.Printf("DatabaseType : %s", dbConf.DatabaseType)
-	log.Printf("DatabaseFile : %s", dbConf.DatabaseFile)
-	logic.Run()
+	db, err := gorm.Open(dbConf.DatabaseType, dbConf.DatabaseFile)
+	if err != nil {
+		log.Fatalf(err.Error())
+	}
+	defer db.Close()
+	config.InitDatabase(db)
+	logic.Run(db)
 }
