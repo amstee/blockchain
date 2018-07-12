@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/amstee/blockchain/config"
 	"log"
+	"github.com/amstee/blockchain/logic"
 )
 
 func main() {
@@ -14,4 +15,5 @@ func main() {
 	log.Printf("Database connection port is %d", dbConf.Port)
 	log.Printf("DatabaseType : %s", dbConf.DatabaseType)
 	log.Printf("DatabaseFile : %s", dbConf.DatabaseFile)
+	logic.Run()
 }
