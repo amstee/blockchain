@@ -9,12 +9,12 @@ import (
 
 type BlockModel struct {
 	gorm.Model
-	Timestamp int64
-	Data string
-	Hash string		`gorm:"type:varchar(32)"`
-	Prev uint
-	PrevHash string `gorm:"type:varchar(32)"`
-	Iterations int
+	Timestamp 		int64
+	Transactions 	[]*TransactionModel	`gorm:"foreignkey:BlockID"`
+	Hash 			string				`gorm:"type:varchar(32)"`
+	Prev 			uint
+	PrevHash 		string 				`gorm:"type:varchar(32)"`
+	Iterations 		int
 }
 
 func (b *BlockModel) GetPrevHash() []byte {
@@ -25,18 +25,26 @@ func (b *BlockModel) GetHash() []byte {
 	return []byte(b.Hash)
 }
 
-func (b *BlockModel) GetData() []byte {
-	return []byte(b.Data)
+func (b *BlockModel) HashTransactions() []byte {
+	var txHashes [][]byte
+	var txHash [32]byte
+
+	for _, tx := range b.Transactions {
+		txHashes = append(txHashes, []byte(tx.Txid))
+	}
+	txHash = sha256.Sum256(bytes.Join(txHashes, []byte{}))
+
+	return txHash[:]
 }
 
 func (b *BlockModel) SetHash() {
 	timestamp := []byte(strconv.FormatInt(b.Timestamp, 10))
 	var headers []byte
 	if b.Prev == 0 {
-		headers = bytes.Join([][]byte{{}, b.GetData(), timestamp}, []byte(""))
+		headers = bytes.Join([][]byte{{}, b.HashTransactions(), timestamp}, []byte(""))
 
 	} else {
-		headers = bytes.Join([][]byte{b.GetPrevHash(), b.GetData(), timestamp}, []byte(""))
+		headers = bytes.Join([][]byte{b.GetPrevHash(), b.HashTransactions(), timestamp}, []byte(""))
 	}
 	hash := sha256.Sum256(headers)
 	b.Hash = string(hash[:])

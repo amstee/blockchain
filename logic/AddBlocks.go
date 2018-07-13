@@ -6,8 +6,9 @@ import (
 )
 
 func AddBlocks(db *gorm.DB, args []string) {
-	blockchain := classes.NewBlockChain(db)
-	for _, s := range args {
-		blockchain.AddBlock(s, db)
+	var blockchain *classes.Blockchain
+	if blockchain = classes.GetBlockChainFromGenesis(db); blockchain == nil {
+		blockchain = classes.NewBlockChain(db, "amstee")
 	}
+	blockchain.AddBlock(nil, db)
 }

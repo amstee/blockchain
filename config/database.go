@@ -15,6 +15,9 @@ type DatabaseConfig struct {
 
 func InitDatabase(db *gorm.DB) error {
 	db.AutoMigrate(&models.BlockModel{})
+	db.AutoMigrate(&models.TransactionModel{})
+	db.AutoMigrate(&models.TXOutput{})
+	db.AutoMigrate(&models.TXInput{})
 	return nil
 }
 
