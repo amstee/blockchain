@@ -6,13 +6,13 @@ import (
 	"github.com/amstee/blockchain/logic"
 )
 
-var addCmd = &cobra.Command{
-	Use:   "addblock",
-	Short: "Create new blocks to the blockchain",
-	Long:  `Create new blocks to the blockchain`,
+var getBalanceCmd = &cobra.Command{
+	Use:   "balance",
+	Short: "Display balance for a given address",
+	Long:  `Display balance for a given address`,
 	Run: func(cmd *cobra.Command, args []string) {
 		db := config.StartDatabase()
 		defer db.Close()
-		logic.AddBlocks(db, args)
+		logic.GetBalance(db, args)
 	},
 }

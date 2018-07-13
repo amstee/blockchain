@@ -7,6 +7,6 @@ import (
 
 func PrintBlockchain(db *gorm.DB) error {
 	blockchain := classes.GetBlockChainFromGenesis(db)
-	blockchain.DisplayBlockChain(db)
+	blockchain.DisplayBlockChain()
 	return nil
 }

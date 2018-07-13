@@ -18,6 +18,10 @@ func (tx *TransactionModel) GetTXID() []byte {
 	return []byte(tx.Txid)
 }
 
+func (tx *TransactionModel) IsCoinbase() bool {
+	return len(tx.Vin) == 1 && tx.Vin[0].Vout == -1
+}
+
 func (tx *TransactionModel) SetID() {
 	var encoded bytes.Buffer
 	var hash [32]byte

@@ -5,61 +5,110 @@ import (
 	"github.com/amstee/blockchain/models"
 	"time"
 	"github.com/jinzhu/gorm"
+	"encoding/hex"
 )
 
 type Blockchain struct {
 	blocks []*models.BlockModel
+	db *gorm.DB
 }
 
-func (b *Blockchain) AddBlock(txs []*models.TransactionModel, db *gorm.DB) {
+func (b* Blockchain) GetUnspentOutputs(address string) []models.TXOutput {
+	var outputs []models.TXOutput
+	txs := b.GetUnspentTransactions(address)
+
+	for _, tx := range txs {
+		for _, out := range tx.Vout {
+			if out.CanBeUnlocked(address) {
+				outputs = append(outputs, out)
+			}
+		}
+	}
+	return outputs
+}
+
+func (b *Blockchain) GetUnspentTransactions(address string) []models.TransactionModel {
+	var unspent []models.TransactionModel
+	spent := make(map[string] []int)
+	var transactions []*models.TransactionModel
+
+	for _, block := range b.blocks {
+		b.db.Model(&block).Related(&transactions, "BlockID")
+		for _, tx := range transactions {
+			txID := hex.EncodeToString([]byte(tx.Txid))
+			b.db.Model(&tx).Related(&tx.Vin, "TxID")
+			b.db.Model(&tx).Related(&tx.Vout, "TxID")
+		NextIteration:
+			for i, out := range tx.Vout {
+				if spent[txID] != nil {
+					for _, spentOut := range spent[txID] {
+						if spentOut == i {
+							continue NextIteration
+						}
+					}
+				}
+				if out.CanBeUnlocked(address) {
+					unspent = append(unspent, *tx)
+				}
+			}
+			if tx.IsCoinbase() == false {
+				for _, in := range tx.Vin {
+					if in.CanUnlockOutput(address) {
+						index := hex.EncodeToString([]byte(in.TxID))
+						spent[index] = append(spent[index], in.Vout)
+					}
+				}
+			}
+		}
+	}
+	return unspent
+}
+
+
+func (b *Blockchain) AddBlock(txs []*models.TransactionModel) {
 	prevBlock := b.blocks[len(b.blocks) - 1]
 	newBlock := NewBlock(txs, prevBlock)
 	b.blocks = append(b.blocks, newBlock)
-	if db.NewRecord(newBlock) {
-		db.Create(newBlock)
+	if b.db.NewRecord(newBlock) {
+		b.db.Create(newBlock)
 	}
 }
 
 func NewGenesisBlock(db *gorm.DB, address string) *models.BlockModel {
-	var block models.BlockModel
-
-	if err := db.Last(&block).Error; err != nil {
-		coinbase := NewCoinBaseTX(address, "")
-		block := NewBlock([]*models.TransactionModel{coinbase}, nil)
-		if db.NewRecord(block) {
-			db.Create(block)
-		}
-		return block
+	coinbase := NewCoinBaseTX(address, "")
+	block := NewBlock([]*models.TransactionModel{coinbase}, nil)
+	if db.NewRecord(block) {
+		db.Create(block)
 	}
-	return &block
+	return block
 }
 
 func GetBlockChainFromGenesis(db *gorm.DB) *Blockchain {
 	var blocks []*models.BlockModel
 
-	if err := db.Find(&blocks).Error; err != nil {
+	if err := db.Find(&blocks).Error; err != nil || len(blocks) == 0 {
 		return nil
 	}
-	return &Blockchain{blocks}
+	return &Blockchain{blocks, db}
 }
 
 func NewBlockChain(db *gorm.DB, address string) *Blockchain {
-	return &Blockchain{[]*models.BlockModel{NewGenesisBlock(db, address)}}
+	return &Blockchain{[]*models.BlockModel{NewGenesisBlock(db, address)}, db}
 }
 
-func (b *Blockchain) DisplayBlockChain(db *gorm.DB) {
+func (b *Blockchain) DisplayBlockChain() {
 	var txs []*models.TransactionModel
 	var inputs []models.TXInput
 	var outputs []models.TXOutput
 	for _, block := range b.blocks {
 		fmt.Printf("PrevHash: %x\n", block.GetPrevHash())
 		fmt.Printf("Hash: %x\n", block.GetHash())
-		db.Model(&block).Related(&txs, "BlockID")
+		b.db.Model(&block).Related(&txs, "BlockID")
 		for _, tx := range txs {
 			fmt.Printf("Transaction BLOCK   : %d\n", tx.BlockID)
 			fmt.Printf("Transaction ID      : %x\n", tx.GetTXID())
-			db.Model(&tx).Related(&inputs, "TxID")
-			db.Model(&tx).Related(&outputs, "TxID")
+			b.db.Model(&tx).Related(&inputs, "TxID")
+			b.db.Model(&tx).Related(&outputs, "TxID")
 			for _, itx := range inputs {
 				fmt.Printf("Input TXID          : %x\n", itx.GetTXID())
 				fmt.Printf("Input VOUT          : %x\n", itx.Vout)
