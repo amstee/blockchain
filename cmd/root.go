@@ -41,6 +41,7 @@ func init() {
 	rootCmd.AddCommand(createBlockchainCmd)
 	rootCmd.AddCommand(printCmd)
 	rootCmd.AddCommand(getBalanceCmd)
+	rootCmd.AddCommand(sendCmd)
 	rootCmd.PersistentFlags().StringVar(&CfgFile, "config", "config.json", "config file")
 	viper.SetConfigFile(CfgFile)
 	viper.AddConfigPath(".")

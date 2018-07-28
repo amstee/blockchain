@@ -5,12 +5,34 @@ import (
 	"github.com/amstee/blockchain/models"
 	"time"
 	"github.com/jinzhu/gorm"
-	"encoding/hex"
 )
 
 type Blockchain struct {
 	blocks []*models.BlockModel
 	db *gorm.DB
+}
+
+func (b* Blockchain) MineBlock(transactions []*models.TransactionModel) {
+	b.AddBlock(transactions)
+}
+
+func (b* Blockchain) FindOutputs(from string, amount int) (int, map[string][]int) {
+	outputs := make(map[string][]int)
+	unspents := b.GetUnspentTransactions(from)
+	total := 0
+
+	for _, tx := range unspents {
+		for count, out := range tx.Vout {
+			if out.CanBeUnlocked(from) {
+				total += out.Value
+				outputs[out.TxID] = append(outputs[out.TxID], count)
+				if total >= amount {
+					return total, outputs
+				}
+			}
+		}
+	}
+	return total, outputs
 }
 
 func (b* Blockchain) GetUnspentOutputs(address string) []models.TXOutput {
@@ -31,17 +53,18 @@ func (b *Blockchain) GetUnspentTransactions(address string) []models.Transaction
 	var unspent []models.TransactionModel
 	spent := make(map[string] []int)
 	var transactions []*models.TransactionModel
+	it := len(b.blocks) - 1
 
-	for _, block := range b.blocks {
-		b.db.Model(&block).Related(&transactions, "BlockID")
+	for it >= 0 {
+		b.db.Model(&b.blocks[it]).Related(&transactions, "BlockID")
+		it -= 1
 		for _, tx := range transactions {
-			txID := hex.EncodeToString([]byte(tx.Txid))
 			b.db.Model(&tx).Related(&tx.Vin, "TxID")
 			b.db.Model(&tx).Related(&tx.Vout, "TxID")
 		NextIteration:
 			for i, out := range tx.Vout {
-				if spent[txID] != nil {
-					for _, spentOut := range spent[txID] {
+				if spent[tx.Txid] != nil {
+					for _, spentOut := range spent[tx.Txid] {
 						if spentOut == i {
 							continue NextIteration
 						}
@@ -54,8 +77,7 @@ func (b *Blockchain) GetUnspentTransactions(address string) []models.Transaction
 			if tx.IsCoinbase() == false {
 				for _, in := range tx.Vin {
 					if in.CanUnlockOutput(address) {
-						index := hex.EncodeToString([]byte(in.TxID))
-						spent[index] = append(spent[index], in.Vout)
+						spent[in.OtxID] = append(spent[in.OtxID], in.Vout)
 					}
 				}
 			}
@@ -111,12 +133,13 @@ func (b *Blockchain) DisplayBlockChain() {
 			b.db.Model(&tx).Related(&outputs, "TxID")
 			for _, itx := range inputs {
 				fmt.Printf("Input TXID          : %x\n", itx.GetTXID())
+				fmt.Printf("Input OTXID         : %x\n", itx.GetOTXID())
 				fmt.Printf("Input VOUT          : %x\n", itx.Vout)
 				fmt.Printf("Input ScriptSig     : %s\n", itx.ScriptSig)
 			}
 			for _, otx := range outputs {
 				fmt.Printf("Output TXID         : %x\n", otx.GetTXID())
-				fmt.Printf("Output Value        : %x\n", otx.Value)
+				fmt.Printf("Output Value        : %d\n", otx.Value)
 				fmt.Printf("Output ScriptPubKey : %s\n", otx.ScriptPubKey)
 			}
 		}
