@@ -34,6 +34,10 @@ func initConfig() {
 		fmt.Println(err)
 		os.Exit(1)
 	}
+	err2 := viper.Unmarshal(config.BlockchainConfig); if err2 != nil {
+		fmt.Println(err2)
+		os.Exit(1)
+	}
 }
 
 func init() {

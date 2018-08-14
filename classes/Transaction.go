@@ -9,8 +9,9 @@ func NewCoinBaseTX(to, data string) *models.TransactionModel {
 	if data == "" {
 		data = fmt.Sprintf("Reward to %s", to)
 	}
-	txin := models.TXInput{TxID: "", OtxID: "", Vout: -1, ScriptSig: data}
-	txout := models.TXOutput{TxID: "", Value: 50, ScriptPubKey: to}
+	txin := models.TXInput{TxID: "", OtxID: "", Vout: -1, Signature: nil, PubKey: data}
+	txout := models.TXOutput{TxID: "", Value: 50}
+	txout.Lock([]byte(to))
 	tx := models.TransactionModel{Txid: "", Vin: []models.TXInput{txin}, Vout: []models.TXOutput{txout}}
 	tx.SetID()
 	return &tx
