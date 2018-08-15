@@ -30,3 +30,7 @@ func (itx *TXInput) GetKey() []byte {
 func (itx *TXInput) GetSignature() []byte {
 	return []byte(itx.Signature)
 }
+
+func (itx *TXInput) GetPubKeyHashed() []byte {
+	return HashPubKey([]byte(itx.PubKey))
+}

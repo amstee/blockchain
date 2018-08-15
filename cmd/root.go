@@ -17,9 +17,9 @@ var rootCmd = &cobra.Command{
 	Short: "A CLI go blockchain implementation",
 	Long: "A CLI go blockchain implementation",
 	Run: func(cmd *cobra.Command, args []string) {
-		db := config.StartDatabase()
+		db := logic.StartDatabase()
 		defer db.Close()
-		config.InitDatabase(db)
+		logic.InitDatabase(db)
 		logic.PrintBlockchain(db)
 	},
 }
@@ -46,6 +46,7 @@ func init() {
 	rootCmd.AddCommand(printCmd)
 	rootCmd.AddCommand(getBalanceCmd)
 	rootCmd.AddCommand(sendCmd)
+	rootCmd.AddCommand(createWalletCmd)
 	rootCmd.PersistentFlags().StringVar(&CfgFile, "config", "config.json", "config file")
 	viper.SetConfigFile(CfgFile)
 	viper.AddConfigPath(".")

@@ -9,7 +9,7 @@ import (
 func GetBalance(db *gorm.DB, args []string) error {
 	blockchain := classes.GetBlockChainFromGenesis(db)
 	balance := 0
-	outputs := blockchain.GetUnspentOutputs(args[0])
+	outputs := blockchain.GetUnspentOutputs([]byte(args[0]))
 
 	for _, out := range outputs {
 		balance += out.Value

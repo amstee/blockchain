@@ -16,14 +16,14 @@ func (b* Blockchain) MineBlock(transactions []*models.TransactionModel) {
 	b.AddBlock(transactions)
 }
 
-func (b* Blockchain) FindOutputs(from string, amount int) (int, map[string][]int) {
+func (b* Blockchain) FindOutputs(PubKeyHash []byte, amount int) (int, map[string][]int) {
 	outputs := make(map[string][]int)
-	unspents := b.GetUnspentTransactions(from)
+	unspents := b.GetUnspentTransactions(PubKeyHash)
 	total := 0
 
 	for _, tx := range unspents {
 		for count, out := range tx.Vout {
-			if out.CanBeUnlocked(from) {
+			if out.CanBeUnlocked(PubKeyHash) {
 				total += out.Value
 				outputs[out.TxID] = append(outputs[out.TxID], count)
 				if total >= amount {
@@ -35,13 +35,13 @@ func (b* Blockchain) FindOutputs(from string, amount int) (int, map[string][]int
 	return total, outputs
 }
 
-func (b* Blockchain) GetUnspentOutputs(address string) []models.TXOutput {
+func (b* Blockchain) GetUnspentOutputs(PubKeyHash []byte) []models.TXOutput {
 	var outputs []models.TXOutput
-	txs := b.GetUnspentTransactions(address)
+	txs := b.GetUnspentTransactions(PubKeyHash)
 
 	for _, tx := range txs {
 		for _, out := range tx.Vout {
-			if out.CanBeUnlocked(address) {
+			if out.CanBeUnlocked(PubKeyHash) {
 				outputs = append(outputs, out)
 			}
 		}
@@ -49,7 +49,7 @@ func (b* Blockchain) GetUnspentOutputs(address string) []models.TXOutput {
 	return outputs
 }
 
-func (b *Blockchain) GetUnspentTransactions(address string) []models.TransactionModel {
+func (b *Blockchain) GetUnspentTransactions(PubKeyHash []byte) []models.TransactionModel {
 	var unspent []models.TransactionModel
 	spent := make(map[string] []int)
 	var transactions []*models.TransactionModel
@@ -70,13 +70,13 @@ func (b *Blockchain) GetUnspentTransactions(address string) []models.Transaction
 						}
 					}
 				}
-				if out.CanBeUnlocked(address) {
+				if out.CanBeUnlocked(PubKeyHash) {
 					unspent = append(unspent, *tx)
 				}
 			}
 			if tx.IsCoinbase() == false {
 				for _, in := range tx.Vin {
-					if in.CanUnlockOutput(address) {
+					if in.CanUnlockOutput(PubKeyHash) {
 						spent[in.OtxID] = append(spent[in.OtxID], in.Vout)
 					}
 				}
@@ -135,12 +135,14 @@ func (b *Blockchain) DisplayBlockChain() {
 				fmt.Printf("Input TXID          : %x\n", itx.GetTXID())
 				fmt.Printf("Input OTXID         : %x\n", itx.GetOTXID())
 				fmt.Printf("Input VOUT          : %x\n", itx.Vout)
-				fmt.Printf("Input ScriptSig     : %s\n", itx.ScriptSig)
+				fmt.Printf("Input Signature     : %s\n", itx.Signature)
+				fmt.Printf("Input PubKey        : %s\n", itx.PubKey)
+				fmt.Printf("Input PubKeyHashed  : %x\n", itx.GetPubKeyHashed())
 			}
 			for _, otx := range outputs {
 				fmt.Printf("Output TXID         : %x\n", otx.GetTXID())
 				fmt.Printf("Output Value        : %d\n", otx.Value)
-				fmt.Printf("Output ScriptPubKey : %s\n", otx.ScriptPubKey)
+				fmt.Printf("Output ScriptPubKey : %x\n", otx.GetKey())
 			}
 		}
 		fmt.Println()

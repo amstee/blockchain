@@ -5,4 +5,4 @@ type BlockchainConf struct {
 	CheckSumLen int
 }
 
-var BlockchainConfig BlockchainConf
+var BlockchainConfig = new(BlockchainConf)

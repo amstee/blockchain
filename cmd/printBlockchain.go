@@ -3,7 +3,6 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 	"github.com/amstee/blockchain/logic"
-	"github.com/amstee/blockchain/config"
 )
 
 var printCmd = &cobra.Command{
@@ -11,7 +10,7 @@ var printCmd = &cobra.Command{
 	Short: "print the whole blockchain",
 	Long:  `print the whole blockchain`,
 	Run: func(cmd *cobra.Command, args []string) {
-		db := config.StartDatabase()
+		db := logic.StartDatabase()
 		defer db.Close()
 		logic.PrintBlockchain(db)
 	},

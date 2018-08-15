@@ -33,6 +33,6 @@ func (otx *TXOutput) Lock(address []byte) {
 	otx.PubKeyHash = string(pubkeyhash)
 }
 
-func (otx *TXOutput) CanBeUnlocked(pubkey []byte) bool {
-	return bytes.Compare([]byte(otx.PubKeyHash), pubkey) == 0
+func (otx *TXOutput) CanBeUnlocked(PubKeyHash []byte) bool {
+	return bytes.Compare([]byte(otx.PubKeyHash), PubKeyHash) == 0
 }

@@ -11,6 +11,7 @@ import (
 	"github.com/itchyny/base58-go"
 	"github.com/jinzhu/gorm"
 	"github.com/amstee/ecdsa-serializer"
+	"fmt"
 )
 
 type Wallet struct {
@@ -19,8 +20,14 @@ type Wallet struct {
 	PublicKey string
 }
 
-type Wallets struct {
-	List map[string]*Wallet
+func (w *Wallet) Display() {
+	fmt.Printf("Input PrivateKey    : %s\n", w.PrivateKey)
+	fmt.Printf("Input PublicKey     : %x\n", w.GetPubKeyHashed())
+	fmt.Printf("Input Address       : %x\n", w.GetAddress())
+}
+
+func (w *Wallet) GetPubKeyHashed() []byte {
+	return HashPubKey([]byte(w.PublicKey))
 }
 
 func (w *Wallet) GetEcdsaPrivateKey() *ecdsa.PrivateKey {
@@ -29,38 +36,11 @@ func (w *Wallet) GetEcdsaPrivateKey() *ecdsa.PrivateKey {
 	return pk
 }
 
-func (ws *Wallets) Save(db *gorm.DB) error {
-	return nil
-}
-
-func (ws *Wallets) Load(db *gorm.DB) error {
-	var temp []*Wallet
-
-	err := db.Find(&temp).Error; if err != nil {
-		return err
-	}
-	for _, wallet := range temp {
-		address := string(wallet.GetAddress())
-		ws.List[address] = wallet
-	}
-	return nil
-}
-
-func GetWallets(db *gorm.DB) *Wallets {
-	wallets := Wallets{}
-	wallets.List = make(map[string]*Wallet)
-
-	err := wallets.Load(db); if err != nil {
-		return nil
-	}
-	return &wallets
-}
-
 func (w Wallet) GetAddress() []byte {
 	version := []byte(config.BlockchainConfig.Version)
 	hash := HashPubKey([]byte(w.PublicKey))
 	vers := append(version, hash...)
-	checksum := checksum(vers)
+	checksum := CheckSum(vers)
 
 	full := append(vers, checksum...)
 	encoder := base58.BitcoinEncoding
@@ -80,7 +60,7 @@ func HashPubKey(pubkey []byte) []byte {
 	return prip
 }
 
-func checksum(payload []byte) []byte {
+func CheckSum(payload []byte) []byte {
 	f := sha256.Sum256(payload)
 	s := sha256.Sum256(f[:])
 	return s[:config.BlockchainConfig.CheckSumLen]
