@@ -136,13 +136,13 @@ func (b *Blockchain) DisplayBlockChain() {
 				fmt.Printf("Input OTXID         : %x\n", itx.GetOTXID())
 				fmt.Printf("Input VOUT          : %x\n", itx.Vout)
 				fmt.Printf("Input Signature     : %s\n", itx.Signature)
-				fmt.Printf("Input PubKey        : %s\n", itx.PubKey)
+				fmt.Printf("Input PubKey        : %x\n", itx.PubKey)
 				fmt.Printf("Input PubKeyHashed  : %x\n", itx.GetPubKeyHashed())
 			}
 			for _, otx := range outputs {
 				fmt.Printf("Output TXID         : %x\n", otx.GetTXID())
 				fmt.Printf("Output Value        : %d\n", otx.Value)
-				fmt.Printf("Output ScriptPubKey : %x\n", otx.GetKey())
+				fmt.Printf("Output PubKeyHashed : %x\n", otx.GetKey())
 			}
 		}
 		fmt.Println()

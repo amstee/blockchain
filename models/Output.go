@@ -3,9 +3,8 @@ package models
 import (
 	"github.com/jinzhu/gorm"
 	"bytes"
-	"github.com/itchyny/base58-go"
-	"log"
 	"github.com/amstee/blockchain/config"
+	"github.com/amstee/blockchain/utils"
 )
 
 type TXOutput struct {
@@ -24,11 +23,7 @@ func (otx *TXOutput) GetTXID() []byte {
 }
 
 func (otx *TXOutput) Lock(address []byte) {
-	encoder := base58.BitcoinEncoding
-
-	pubkeyhash, err := encoder.Decode(address); if err != nil {
-		log.Fatalf("Error decoding from base58")
-	}
+	pubkeyhash := utils.Base58Decode(address)
 	pubkeyhash = pubkeyhash[1 : len(pubkeyhash) - config.BlockchainConfig.CheckSumLen]
 	otx.PubKeyHash = string(pubkeyhash)
 }
