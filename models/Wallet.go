@@ -23,6 +23,7 @@ type Wallet struct {
 func (w *Wallet) Display() {
 	fmt.Printf("Wallet PubKeyHahed   : %x\n", w.GetPubKeyHashed())
 	fmt.Printf("Wallet Address       : %s\n", w.GetAddress())
+	fmt.Printf("Wallet PublicKey     : %x\n\n", w.GetKey())
 }
 
 func (w *Wallet) GetPubKeyHashed() []byte {

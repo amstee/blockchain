@@ -4,13 +4,17 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/amstee/blockchain/classes"
 	"fmt"
+	"github.com/amstee/blockchain/utils"
 )
 
 func GetBalance(db *gorm.DB, args []string) error {
 	blockchain := classes.GetBlockChainFromGenesis(db)
 	balance := 0
-	outputs := blockchain.GetUnspentOutputs([]byte(args[0]))
 
+	pubKeyHash := utils.Base58Decode([]byte(args[0]))
+	pubKeyHash = pubKeyHash[1 : len(pubKeyHash)-4]
+
+	outputs := blockchain.GetUnspentOutputs(pubKeyHash)
 	for _, out := range outputs {
 		balance += out.Value
 	}

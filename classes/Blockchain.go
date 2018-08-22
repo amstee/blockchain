@@ -20,7 +20,7 @@ func (b *Blockchain) FindTransaction(Txid string) (*models.TransactionModel, err
 	var transactions []*models.TransactionModel
 
 	for it >= 0 {
-		b.db.Model(&b.blocks[it]).Related(&transactions, "BlockID")
+		transactions = b.blocks[it].LoadTransactions(b.db)
 		it -= 1
 
 		for _, tx := range transactions {
@@ -171,26 +171,26 @@ func (b *Blockchain) DisplayBlockChain() {
 	var inputs []models.TXInput
 	var outputs []models.TXOutput
 	for _, block := range b.blocks {
-		fmt.Printf("PrevHash: %x\n", block.GetPrevHash())
-		fmt.Printf("Hash: %x\n", block.GetHash())
+		fmt.Printf("----> PrevHash: %x\n", block.GetPrevHash())
+		fmt.Printf("----> Hash: %x\n", block.GetHash())
 		b.db.Model(&block).Related(&txs, "BlockID")
 		for _, tx := range txs {
-			fmt.Printf("Transaction BLOCK   : %d\n", tx.BlockID)
-			fmt.Printf("Transaction ID      : %x\n", tx.GetTXID())
+			fmt.Printf("---> Transaction BLOCK   : %d\n", tx.BlockID)
+			fmt.Printf("---> Transaction ID      : %x\n", tx.GetTXID())
 			b.db.Model(&tx).Related(&inputs, "TxID")
 			b.db.Model(&tx).Related(&outputs, "TxID")
 			for _, itx := range inputs {
-				fmt.Printf("Input TXID          : %x\n", itx.GetTXID())
-				fmt.Printf("Input OTXID         : %x\n", itx.GetOTXID())
-				fmt.Printf("Input VOUT          : %x\n", itx.Vout)
-				fmt.Printf("Input Signature     : %s\n", itx.Signature)
-				fmt.Printf("Input PubKey        : %x\n", itx.PubKey)
-				fmt.Printf("Input PubKeyHashed  : %x\n", itx.GetPubKeyHashed())
+				fmt.Printf("--> Input TXID          : %x\n", itx.GetTXID())
+				fmt.Printf("--> Input OTXID         : %x\n", itx.GetOTXID())
+				fmt.Printf("--> Input VOUT          : %x\n", itx.Vout)
+				fmt.Printf("--> Input Signature     : %x\n", itx.GetSignature())
+				fmt.Printf("--> Input PubKey        : %x\n", itx.PubKey)
+				fmt.Printf("--> Input PubKeyHashed  : %x\n", itx.GetPubKeyHashed())
 			}
 			for _, otx := range outputs {
-				fmt.Printf("Output TXID         : %x\n", otx.GetTXID())
-				fmt.Printf("Output Value        : %d\n", otx.Value)
-				fmt.Printf("Output PubKeyHashed : %x\n", otx.GetKey())
+				fmt.Printf("--> Output TXID         : %x\n", otx.GetTXID())
+				fmt.Printf("--> Output Value        : %d\n", otx.Value)
+				fmt.Printf("--> Output PubKeyHashed : %x\n\n", otx.GetKey())
 			}
 		}
 		fmt.Println()

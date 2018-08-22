@@ -8,7 +8,7 @@ import (
 	"crypto/ecdsa"
 	"crypto/rand"
 	"math/big"
-	"github.com/amstee/ecdsa-serializer"
+	"crypto/elliptic"
 )
 
 type TransactionModel struct {
@@ -29,7 +29,7 @@ func (tx *TransactionModel) IsCoinbase() bool {
 func (tx *TransactionModel) Verify(prevTransactions map[string]*TransactionModel) bool {
 	if !tx.IsCoinbase() {
 		txCopy := tx.GetTrimmedTransaction()
-		//curve := elliptic.P256()
+		curve := elliptic.P256()
 
 		for i, vin := range tx.Vin {
 			prevTransaction := prevTransactions[vin.OtxID]
@@ -43,17 +43,14 @@ func (tx *TransactionModel) Verify(prevTransactions map[string]*TransactionModel
 			r.SetBytes([]byte(vin.Signature)[:(sigLen / 2)])
 			s.SetBytes([]byte(vin.Signature)[(sigLen / 2):])
 
-			pubKey, err := EcdsaEncoder.DecodePubKey(vin.PubKey); if err != nil {
-				log.Fatalf("Unable to decode ecdsa public key : %s", err)
-			}
-			//x := big.Int{}
-			//y := big.Int{}
-			//keyLen := len(vin.PubKey)
-			//x.SetBytes([]byte(vin.PubKey)[:(keyLen / 2)])
-			//y.SetBytes([]byte(vin.PubKey)[(keyLen / 2):])
-			//pubKey := ecdsa.PublicKey{curve, &x, &y}
+			x := big.Int{}
+			y := big.Int{}
+			keyLen := len(vin.PubKey)
+			x.SetBytes([]byte(vin.PubKey)[:(keyLen / 2)])
+			y.SetBytes([]byte(vin.PubKey)[(keyLen / 2):])
+			pubKey := ecdsa.PublicKey{Curve: curve, X: &x, Y: &y}
 
-			if ecdsa.Verify(pubKey, []byte(txCopy.Txid), &r, &s) == false {
+			if ecdsa.Verify(&pubKey, []byte(txCopy.Txid), &r, &s) == false {
 				return false
 			}
 		}
@@ -81,6 +78,9 @@ func (tx *TransactionModel) Sign(privKey *ecdsa.PrivateKey, prevTransactions map
 
 		for i := 0; i < len(TXCopy.Vin); i++ {
 			prevTransaction := prevTransactions[TXCopy.Vin[i].OtxID]
+			if TXCopy.Vin[i].Vout >= len(prevTransaction.Vout) {
+				log.Fatalf("Invalid number of outputs in transaction, cannot sign")
+			}
 			TXCopy.Vin[i].PubKey = prevTransaction.Vout[TXCopy.Vin[i].Vout].PubKeyHash
 			TXCopy.SetID()
 			TXCopy.Vin[i].PubKey = ""

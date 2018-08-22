@@ -17,6 +17,17 @@ type BlockModel struct {
 	Iterations 		int
 }
 
+func (b *BlockModel) LoadTransactions(db *gorm.DB) []*TransactionModel {
+	var transactions []*TransactionModel
+
+	db.Model(&b).Related(&transactions, "BlockID")
+	for _, transaction := range transactions {
+		db.Model(&transaction).Related(&transaction.Vin, "TxID")
+		db.Model(&transaction).Related(&transaction.Vout, "TxID")
+	}
+	return transactions
+}
+
 func (b *BlockModel) GetPrevHash() []byte {
 	return []byte(b.PrevHash)
 }
