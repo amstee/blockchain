@@ -5,11 +5,54 @@ import (
 	"github.com/amstee/blockchain/models"
 	"time"
 	"github.com/jinzhu/gorm"
+	"errors"
+	"crypto/ecdsa"
+	"log"
 )
 
 type Blockchain struct {
 	blocks []*models.BlockModel
 	db *gorm.DB
+}
+
+func (b *Blockchain) FindTransaction(Txid string) (*models.TransactionModel, error) {
+	it := len(b.blocks) - 1
+	var transactions []*models.TransactionModel
+
+	for it >= 0 {
+		b.db.Model(&b.blocks[it]).Related(&transactions, "BlockID")
+		it -= 1
+
+		for _, tx := range transactions {
+			if tx.Txid == Txid {
+				return tx, nil
+			}
+		}
+	}
+	return nil, errors.New("transaction not found")
+}
+
+func (b *Blockchain) SignTransaction(transaction *models.TransactionModel, privKey *ecdsa.PrivateKey) {
+	prevTransactions := make(map[string]*models.TransactionModel)
+
+	for _, vin := range transaction.Vin {
+		prevTransaction, err := b.FindTransaction(vin.OtxID); if err == nil {
+			prevTransactions[prevTransaction.Txid] = prevTransaction
+		}
+	}
+
+	transaction.Sign(privKey, prevTransactions)
+}
+
+func (b *Blockchain) VerifyTransaction(transaction *models.TransactionModel) bool {
+	prevTransactions := make(map[string]*models.TransactionModel)
+
+	for _, vin := range transaction.Vin {
+		prevTransaction, err := b.FindTransaction(vin.OtxID); if err == nil {
+			prevTransactions[prevTransaction.Txid] = prevTransaction
+		}
+	}
+	return transaction.Verify(prevTransactions)
 }
 
 func (b* Blockchain) MineBlock(transactions []*models.TransactionModel) {
@@ -88,6 +131,11 @@ func (b *Blockchain) GetUnspentTransactions(PubKeyHash []byte) []models.Transact
 
 
 func (b *Blockchain) AddBlock(txs []*models.TransactionModel) {
+	for _, transaction := range txs {
+		if b.VerifyTransaction(transaction) == false {
+			log.Fatalf("Error : Invalid transaction occured while mining the block with transaction %x", transaction.GetTXID())
+		}
+	}
 	prevBlock := b.blocks[len(b.blocks) - 1]
 	newBlock := NewBlock(txs, prevBlock)
 	b.blocks = append(b.blocks, newBlock)

@@ -38,5 +38,6 @@ func NewTransaction(from, to string, amount int, bc *Blockchain, ws *models.Wall
 	}
 	tx := models.TransactionModel{Vin: inputs, Vout: outputs}
 	tx.SetID()
+	bc.SignTransaction(&tx, wallet.GetEcdsaPrivateKey())
 	return &tx
 }
