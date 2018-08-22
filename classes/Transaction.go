@@ -32,7 +32,9 @@ func NewTransaction(from, to string, amount int, bc *Blockchain, ws *models.Wall
 			inputs = append(inputs, input)
 		}
 	}
-	outputs = append(outputs, models.TXOutput{Value:amount, PubKeyHash: string(models.HashPubKey([]byte(to)))})
+	output := models.TXOutput{Value:amount, PubKeyHash: ""}
+	output.Lock([]byte(to))
+	outputs = append(outputs, output)
 	if acc > amount {
 		outputs = append(outputs, models.TXOutput{Value: acc - amount, PubKeyHash: string(PubKeyHash)})
 	}

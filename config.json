@@ -2,5 +2,5 @@
   "DatabaseType": "sqlite3",
   "DatabaseFile": "blockchain.db",
   "CheckSumLen": 4,
-  "Version": "1"
+  "Version": 0
 }

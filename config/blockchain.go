@@ -1,7 +1,7 @@
 package config
 
 type BlockchainConf struct {
-	Version string
+	Version byte
 	CheckSumLen int
 }
 

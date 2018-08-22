@@ -1,9 +1,22 @@
 package models
 
-import "github.com/jinzhu/gorm"
+import (
+	"github.com/jinzhu/gorm"
+	"fmt"
+)
 
 type Wallets struct {
 	List map[string]*Wallet
+}
+
+func (ws *Wallets) Display() {
+	i := 0
+
+	for _, wallet := range ws.List {
+		i += 1
+		fmt.Printf("Wallet %d\n", i)
+		wallet.Display()
+	}
 }
 
 func GetWallets(db *gorm.DB) *Wallets {

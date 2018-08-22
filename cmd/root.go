@@ -47,6 +47,7 @@ func init() {
 	rootCmd.AddCommand(getBalanceCmd)
 	rootCmd.AddCommand(sendCmd)
 	rootCmd.AddCommand(createWalletCmd)
+	rootCmd.AddCommand(displayWalletsCmd)
 	rootCmd.PersistentFlags().StringVar(&CfgFile, "config", "config.json", "config file")
 	viper.SetConfigFile(CfgFile)
 	viper.AddConfigPath(".")

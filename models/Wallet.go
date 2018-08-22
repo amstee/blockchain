@@ -6,12 +6,12 @@ import (
 	"crypto/rand"
 	"log"
 	"crypto/sha256"
-	"crypto"
 	"github.com/amstee/blockchain/config"
-	"github.com/itchyny/base58-go"
 	"github.com/jinzhu/gorm"
 	"github.com/amstee/ecdsa-serializer"
 	"fmt"
+	"golang.org/x/crypto/ripemd160"
+	"github.com/amstee/blockchain/utils"
 )
 
 type Wallet struct {
@@ -21,13 +21,16 @@ type Wallet struct {
 }
 
 func (w *Wallet) Display() {
-	fmt.Printf("Input PrivateKey    : %s\n", w.PrivateKey)
-	fmt.Printf("Input PublicKey     : %x\n", w.GetPubKeyHashed())
-	fmt.Printf("Input Address       : %x\n", w.GetAddress())
+	fmt.Printf("Wallet PubKeyHahed   : %x\n", w.GetPubKeyHashed())
+	fmt.Printf("Wallet Address       : %s\n", w.GetAddress())
 }
 
 func (w *Wallet) GetPubKeyHashed() []byte {
 	return HashPubKey([]byte(w.PublicKey))
+}
+
+func (w *Wallet) GetKey() []byte {
+	return []byte(w.PublicKey)
 }
 
 func (w *Wallet) GetEcdsaPrivateKey() *ecdsa.PrivateKey {
@@ -37,22 +40,21 @@ func (w *Wallet) GetEcdsaPrivateKey() *ecdsa.PrivateKey {
 }
 
 func (w Wallet) GetAddress() []byte {
-	version := []byte(config.BlockchainConfig.Version)
+	version := []byte{config.BlockchainConfig.Version}
+
 	hash := HashPubKey([]byte(w.PublicKey))
+
 	vers := append(version, hash...)
 	checksum := CheckSum(vers)
 
 	full := append(vers, checksum...)
-	encoder := base58.BitcoinEncoding
-	address, err := encoder.Encode(full); if err != nil {
-		log.Fatalf("Error encoding in base58")
-	}
+	address := utils.Base58Encode(full)
 	return address
 }
 
 func HashPubKey(pubkey []byte) []byte {
 	public := sha256.Sum256(pubkey)
-	rip := crypto.RIPEMD160.New()
+	rip := ripemd160.New()
 	_, err := rip.Write(public[:]); if err != nil {
 		log.Fatalf("An error occured (RIPEMD160)")
 	}
@@ -68,17 +70,17 @@ func CheckSum(payload []byte) []byte {
 
 func NewWallet() *Wallet {
 	private, public := NewKeyPair()
-	privstr, _ := EcdsaEncoder.EncodePrivKey(&private)
+	privstr, _ := EcdsaEncoder.EncodePrivKey(private)
 	wallet := Wallet{PrivateKey: privstr, PublicKey: string(public)}
 	return &wallet
 }
 
-func NewKeyPair() (ecdsa.PrivateKey, []byte) {
+func NewKeyPair() (*ecdsa.PrivateKey, []byte) {
 	curve := elliptic.P256()
 	private, err := ecdsa.GenerateKey(curve, rand.Reader); if err != nil {
 		log.Fatalf("An error occured generating the key pair")
 	}
 	pubKey := append(private.PublicKey.X.Bytes(), private.PublicKey.Y.Bytes()...)
 
-	return *private, pubKey
+	return private, pubKey
 }
