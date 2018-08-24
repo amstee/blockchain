@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/amstee/blockchain/classes"
 	"github.com/amstee/blockchain/models"
+	"github.com/amstee/blockchain/utils"
 )
 
 func SendCurrency(db *gorm.DB, args []string) {
@@ -17,6 +18,8 @@ func SendCurrency(db *gorm.DB, args []string) {
 		fmt.Println("Invalid amount")
 	}
 	txs := classes.NewTransaction(from, to, amount, blockchain, wallets)
-	blockchain.MineBlock([]*models.TransactionModel{txs})
-	fmt.Println("success")
+	reward := classes.NewCoinBaseTX(from, utils.RandStringBytesRmndr(16))
+	blockchain.MineBlock([]*models.TransactionModel{reward, txs})
+
+	fmt.Printf("Block mined by sender, reward = %d\n", reward.Vout[0].Value)
 }

@@ -140,7 +140,7 @@ func (b *Blockchain) AddBlock(txs []*models.TransactionModel) {
 	newBlock := NewBlock(txs, prevBlock)
 	b.blocks = append(b.blocks, newBlock)
 	if b.db.NewRecord(newBlock) {
-		b.db.Create(newBlock)
+		b.db.Create(&newBlock)
 	}
 }
 
@@ -148,7 +148,7 @@ func NewGenesisBlock(db *gorm.DB, address string) *models.BlockModel {
 	coinbase := NewCoinBaseTX(address, "")
 	block := NewBlock([]*models.TransactionModel{coinbase}, nil)
 	if db.NewRecord(block) {
-		db.Create(block)
+		db.Create(&block)
 	}
 	return block
 }
@@ -167,14 +167,14 @@ func NewBlockChain(db *gorm.DB, address string) *Blockchain {
 }
 
 func (b *Blockchain) DisplayBlockChain() {
-	var txs []*models.TransactionModel
-	var inputs []models.TXInput
-	var outputs []models.TXOutput
 	for _, block := range b.blocks {
+		txs := make([]*models.TransactionModel, 0)
 		fmt.Printf("----> PrevHash: %x\n", block.GetPrevHash())
 		fmt.Printf("----> Hash: %x\n", block.GetHash())
 		b.db.Model(&block).Related(&txs, "BlockID")
 		for _, tx := range txs {
+			inputs := make([]models.TXInput, 0)
+			outputs := make([]models.TXOutput, 0)
 			fmt.Printf("---> Transaction BLOCK   : %d\n", tx.BlockID)
 			fmt.Printf("---> Transaction ID      : %x\n", tx.GetTXID())
 			b.db.Model(&tx).Related(&inputs, "TxID")
