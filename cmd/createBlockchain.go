@@ -12,6 +12,8 @@ var createBlockchainCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		db := logic.StartDatabase()
 		defer db.Close()
-		logic.CreateBlockchain(db, args)
+		odb := logic.StartOutputsDatabase()
+		defer odb.Close()
+		logic.CreateBlockchain(db, odb, args)
 	},
 }

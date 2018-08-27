@@ -9,8 +9,9 @@ import (
 	"github.com/amstee/blockchain/utils"
 )
 
-func SendCurrency(db *gorm.DB, args []string) {
-	blockchain := classes.GetBlockChainFromGenesis(db)
+func SendCurrency(db *gorm.DB, odb *gorm.DB, args []string) {
+	blockchain := classes.GetBlockChainFromGenesis(db, odb)
+	blockchain.SetOutputsDB(odb)
 	wallets := models.GetWallets(db)
 	from := args[0]
 	to := args[1]

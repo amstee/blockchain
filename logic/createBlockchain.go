@@ -5,10 +5,10 @@ import (
 	"github.com/amstee/blockchain/classes"
 )
 
-func CreateBlockchain(db *gorm.DB, args []string) {
+func CreateBlockchain(db *gorm.DB, odb *gorm.DB, args []string) {
 	var blockchain *classes.Blockchain
 
-	if blockchain = classes.GetBlockChainFromGenesis(db); blockchain == nil {
-		blockchain = classes.NewBlockChain(db, args[0])
+	if blockchain = classes.GetBlockChainFromGenesis(db, odb); blockchain == nil {
+		blockchain = classes.NewBlockChain(db, odb, args[0])
 	}
 }

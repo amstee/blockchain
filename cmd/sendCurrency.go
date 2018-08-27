@@ -11,7 +11,9 @@ var sendCmd = &cobra.Command{
 	Long:  `send currency`,
 	Run: func(cmd *cobra.Command, args []string) {
 		db := logic.StartDatabase()
+		odb := logic.StartOutputsDatabase()
 		defer db.Close()
-		logic.SendCurrency(db, args)
+		defer odb.Close()
+		logic.SendCurrency(db, odb, args)
 	},
 }

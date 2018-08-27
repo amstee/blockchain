@@ -19,8 +19,9 @@ var rootCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		db := logic.StartDatabase()
 		defer db.Close()
-		logic.InitDatabase(db)
-		logic.PrintBlockchain(db)
+		odb := logic.StartOutputsDatabase()
+		defer odb.Close()
+		logic.PrintBlockchain(db, odb)
 	},
 }
 
@@ -48,6 +49,8 @@ func init() {
 	rootCmd.AddCommand(sendCmd)
 	rootCmd.AddCommand(createWalletCmd)
 	rootCmd.AddCommand(displayWalletsCmd)
+	rootCmd.AddCommand(updateOutputsCmd)
+	rootCmd.AddCommand(displayUnspentOutputsCmd)
 	rootCmd.PersistentFlags().StringVar(&CfgFile, "config", "config.json", "config file")
 	viper.SetConfigFile(CfgFile)
 	viper.AddConfigPath(".")

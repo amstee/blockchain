@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"github.com/amstee/blockchain/config"
 	"github.com/amstee/blockchain/utils"
+	"fmt"
 )
 
 type TXOutput struct {
@@ -30,4 +31,10 @@ func (otx *TXOutput) Lock(address []byte) {
 
 func (otx *TXOutput) CanBeUnlocked(PubKeyHash []byte) bool {
 	return bytes.Compare([]byte(otx.PubKeyHash), PubKeyHash) == 0
+}
+
+func (otx *TXOutput) Display() {
+	fmt.Printf("Output TXID         : %x\n", otx.GetTXID())
+	fmt.Printf("Output Value        : %d\n", otx.Value)
+	fmt.Printf("Output PubKeyHashed : %x\n\n", otx.GetKey())
 }

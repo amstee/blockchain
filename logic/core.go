@@ -17,11 +17,20 @@ func InitDatabase(db *gorm.DB) error {
 }
 
 func StartDatabase() *gorm.DB {
-	db, err := gorm.Open(config.DbConf.DatabaseType, config.DbConf.DatabaseFile)
+	db, err := gorm.Open(config.DbConf.BlocksDatabaseType, config.DbConf.BlocksDatabaseFile)
 	if err != nil {
 		log.Fatalf(err.Error())
 	}
 	InitDatabase(db)
+	return db
+}
+
+func StartOutputsDatabase() *gorm.DB {
+	db, err := gorm.Open(config.DbConf.OutputsDatabaseType, config.DbConf.OutputsDatabaseFile)
+	if err != nil {
+		log.Fatalf(err.Error())
+	}
+	db.AutoMigrate(&models.TXOutput{})
 	return db
 }
 

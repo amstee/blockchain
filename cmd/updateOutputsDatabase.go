@@ -5,15 +5,15 @@ import (
 	"github.com/amstee/blockchain/logic"
 )
 
-var printCmd = &cobra.Command{
-	Use:   "printchain",
-	Short: "print the whole blockchain",
-	Long:  `print the whole blockchain`,
+var updateOutputsCmd = &cobra.Command{
+	Use:   "update_outputs",
+	Short: "update outputs database",
+	Long:  `update outputs database`,
 	Run: func(cmd *cobra.Command, args []string) {
 		db := logic.StartDatabase()
-		defer db.Close()
 		odb := logic.StartOutputsDatabase()
 		defer db.Close()
-		logic.PrintBlockchain(db, odb)
+		defer odb.Close()
+		logic.UpdateOutputsDatabase(db, odb)
 	},
 }

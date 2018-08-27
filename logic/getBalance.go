@@ -7,8 +7,9 @@ import (
 	"github.com/amstee/blockchain/utils"
 )
 
-func GetBalance(db *gorm.DB, args []string) error {
-	blockchain := classes.GetBlockChainFromGenesis(db)
+func GetBalance(db *gorm.DB, odb *gorm.DB, args []string) error {
+	blockchain := classes.GetBlockChainFromGenesis(db, odb)
+	blockchain.SetOutputsDB(odb)
 	balance := 0
 
 	pubKeyHash := utils.Base58Decode([]byte(args[0]))

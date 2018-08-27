@@ -9,6 +9,7 @@ import (
 	"crypto/rand"
 	"math/big"
 	"crypto/elliptic"
+	"github.com/jinzhu/gorm"
 )
 
 type TransactionModel struct {
@@ -16,6 +17,16 @@ type TransactionModel struct {
 	Txid 	string		`gorm:"primary_key"`
 	Vin		[]TXInput	`gorm:"foreignkey:TxID"`
 	Vout	[]TXOutput	`gorm:"foreignkey:TxID"`
+}
+
+func (tx *TransactionModel) LoadData(db *gorm.DB) error {
+	err := db.Model(tx).Related(&tx.Vin, "TxID").Error; if err != nil {
+		return err
+	}
+	err2 := db.Model(tx).Related(&tx.Vout, "TxID").Error; if err2 != nil {
+		return err2
+	}
+	return nil
 }
 
 func (tx *TransactionModel) GetTXID() []byte {

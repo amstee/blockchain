@@ -1,10 +1,15 @@
 package config
 
 type DatabaseConfig struct {
-	Port int
-	Uri string
-	DatabaseType string
-	DatabaseFile string
+	BlocksDatabasePort int
+	BlocksDatabaseUri string
+	BlocksDatabaseType string
+	BlocksDatabaseFile string
+
+	OutputsDatabasePort int
+	OutputsDatabaseUri string
+	OutputsDatabaseType string
+	OutputsDatabaseFile string
 }
 
 var DbConf = new(DatabaseConfig)

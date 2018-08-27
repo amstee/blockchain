@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"bytes"
 	"crypto/sha256"
+	"fmt"
 )
 
 type BlockModel struct {
@@ -15,6 +16,46 @@ type BlockModel struct {
 	Prev 			uint
 	PrevHash 		string 				`gorm:"type:varchar(32)"`
 	Iterations 		int
+}
+
+func (b *BlockModel) Save(db *gorm.DB, odb *gorm.DB) {
+	var temp TransactionModel
+	var output TXOutput
+
+	if db.NewRecord(b) {
+		t := db.Create(b).Error; if t != nil {
+			fmt.Println(t)
+		}
+	}
+	for _, tx := range b.Transactions {
+		// Check if newly spent outputs exist in odb and delete them
+		if !tx.IsCoinbase() {
+			for _, vin := range tx.Vin {
+				err := db.Model(&vin).Related(&temp, "OtxID").Error; if err == nil {
+					err = temp.LoadData(db); if err == nil {
+						err = odb.First(&output, temp.Vout[vin.Vout].ID).Error; if err == nil {
+							err = odb.Delete(&output).Error; if err != nil {
+								fmt.Println("0", err)
+							}
+						}
+					} else {
+						fmt.Println("1", err)
+					}
+				} else {
+					fmt.Println("2", err)
+				}
+			}
+		}
+		// Add created outputs to the odb
+		var check TXOutput
+		for _, out := range tx.Vout {
+			if odb.First(&check, "id = ?",  out.ID).RecordNotFound() {
+				odb.Create(&out)
+			} else {
+				fmt.Println("Record already exist in odb")
+			}
+		}
+	}
 }
 
 func (b *BlockModel) LoadTransactions(db *gorm.DB) []*TransactionModel {

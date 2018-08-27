@@ -5,8 +5,8 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-func PrintBlockchain(db *gorm.DB) error {
-	blockchain := classes.GetBlockChainFromGenesis(db)
+func PrintBlockchain(db *gorm.DB, odb *gorm.DB) error {
+	blockchain := classes.GetBlockChainFromGenesis(db, odb)
 	blockchain.DisplayBlockChain()
 	return nil
 }

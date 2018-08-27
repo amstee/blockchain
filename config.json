@@ -1,6 +1,8 @@
 {
-  "DatabaseType": "sqlite3",
-  "DatabaseFile": "blockchain.db",
+  "BlocksDatabaseType": "sqlite3",
+  "BlocksDatabaseFile": "blocks.db",
+  "OutputsDatabaseType": "sqlite3",
+  "OutputsDatabaseFile": "outputs.db",
   "CheckSumLen": 4,
   "Version": 0
 }
